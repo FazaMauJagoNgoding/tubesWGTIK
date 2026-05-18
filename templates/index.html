@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediaPipe Camera Classifier</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <main class="app">
+        <video id="video" autoplay muted playsinline></video>
+        <canvas id="frameCanvas" width="320" height="240"></canvas>
+
+        <div class="overlay">
+            <div id="predictionText" class="prediction">No pose detected</div>
+            <div id="confidenceText" class="confidence">Confidence: 0%</div>
+            <div id="status" class="status">Klik Start Camera, lalu izinkan akses kamera.</div>
+            <ul id="reasons" class="reasons"></ul>
+        </div>
+
+        <button id="startButton" class="start-button" type="button">Start Camera</button>
+    </main>
+
+    <script src="{{ url_for('static', filename='camera.js') }}"></script>
+</body>
+</html>

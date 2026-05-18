@@ -1,0 +1,1 @@
+"""Pose classifier application package."""
