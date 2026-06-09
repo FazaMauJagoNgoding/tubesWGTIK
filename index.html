@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sistem Pengawas Ujian — WGTIK</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Header bar -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="brand-badge">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        WGTIK
+      </div>
+      <span class="topbar-title">Sistem Pengawas Ujian</span>
+    </div>
+    <div class="topbar-right">
+      <div class="clock-badge">
+        <span class="clock-dot"></span>
+        <span id="live-clock">--:--:--</span>
+      </div>
+      <div id="status-badge" class="status-badge status-idle">
+        <span class="status-dot"></span>
+        <span id="status-text">Siap dimulai</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- Left: Camera + controls -->
+    <aside class="panel panel-camera">
+      <div class="panel-header">
+        <span class="panel-label">Kamera Pengawas</span>
+        <button type="button" id="start-button" class="btn-start">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Mulai
+        </button>
+      </div>
+
+      <div class="camera-frame">
+        <canvas id="canvas"></canvas>
+        <div class="camera-overlay-idle" id="camera-idle">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+          <span>Kamera belum aktif</span>
+        </div>
+      </div>
+
+      <!-- Prediction bars -->
+      <div class="predictions-box">
+        <div class="predictions-title">Deteksi Postur</div>
+        <div id="label-container" class="predictions-list"></div>
+      </div>
+    </aside>
+
+    <!-- Right: Metrics + log -->
+    <section class="panel panel-monitor">
+
+      <!-- Metrics grid -->
+      <div class="metrics-grid">
+        <div class="metric-card metric-limit" id="metric-limit-card">
+          <div class="metric-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          </div>
+          <div class="metric-body">
+            <span class="metric-label">Sisa Toleransi</span>
+            <strong class="metric-value" id="cheat-limit">5</strong>
+          </div>
+          <div class="metric-bar-wrap">
+            <div class="metric-bar-track"><div class="metric-bar-fill" id="cheat-bar" style="width:100%"></div></div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon metric-icon-detect">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+          <div class="metric-body">
+            <span class="metric-label">Deteksi Aktif</span>
+            <strong class="metric-value" id="active-detection">—</strong>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon metric-icon-timer">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div class="metric-body">
+            <span class="metric-label">Durasi Deteksi</span>
+            <strong class="metric-value mono" id="detection-duration">0s</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Status info -->
+      <div class="info-panel" id="info-panel">
+        <div class="info-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        </div>
+        <span id="status">Tekan tombol "Mulai" untuk mengaktifkan sistem pengawas.</span>
+      </div>
+
+      <!-- Violation log -->
+      <div class="log-panel">
+        <div class="log-header">
+          <span>Log Pelanggaran</span>
+          <span class="log-count" id="log-count">0 peristiwa</span>
+        </div>
+        <ul class="log-list" id="log-list">
+          <li class="log-empty">Belum ada pelanggaran terdeteksi.</li>
+        </ul>
+      </div>
+
+      <!-- Rules summary -->
+      <div class="rules-panel">
+        <div class="rules-title">Aturan Pengawasan</div>
+        <ul class="rules-list">
+          <li><span class="rule-dot rule-red"></span><strong>Penggunaan HP</strong> — Dikunci otomatis setelah 3 detik</li>
+          <li><span class="rule-dot rule-orange"></span><strong>Menunduk</strong> — Penalti setelah 15 detik terus-menerus</li>
+          <li><span class="rule-dot rule-yellow"></span><strong>Melihat samping</strong> — Penalti setelah 3 detik</li>
+          <li><span class="rule-dot rule-gray"></span><strong>Tidak terdeteksi</strong> — Sistem di-pause otomatis</li>
+        </ul>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- LOCK SCREEN -->
+  <div class="overlay" id="lock-screen" role="dialog" aria-modal="true">
+    <div class="overlay-panel lock-panel">
+      <div class="overlay-icon overlay-icon-lock">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <h2>Sistem Terkunci</h2>
+      <p id="lock-reason">Masukkan password pengawas untuk membuka kembali.</p>
+      <form id="lock-form">
+        <div class="input-wrap">
+          <input type="password" id="password-input" autocomplete="current-password" placeholder="Masukkan password...">
+          <button type="submit" class="btn-unlock">Buka Kunci</button>
+        </div>
+        <div id="lock-error" aria-live="polite"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- PAUSE SCREEN -->
+  <div class="overlay" id="pause-screen" role="dialog" aria-modal="true">
+    <div class="overlay-panel pause-panel">
+      <div class="overlay-icon overlay-icon-pause">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+      </div>
+      <h2>Sistem Dijeda</h2>
+      <p id="pause-reason">Klik tombol lanjutkan untuk melanjutkan mengerjakan kuis.</p>
+      <button type="button" id="continue-button" class="btn-continue">Lanjutkan Ujian</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/pose@0.8/dist/teachablemachine-pose.min.js"></script>
+  <script src="app.js"></script>
+  <script>
+    // Live clock
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('live-clock').textContent = now.toLocaleTimeString('id-ID', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // Patch setStatus to also update badge
+    const _orig = window.setStatus;
+  </script>
+</body>
+</html>
