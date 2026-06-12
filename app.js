@@ -42,6 +42,17 @@ const state = {
 };
 
 const elements = {
+  lecturerPage: document.getElementById("lecturer-page"),
+  studentApp: document.getElementById("student-app"),
+  lecturerForm: document.getElementById("lecturer-form"),
+  examUrlInput: document.getElementById("exam-url"),
+  generatedLinkPanel: document.getElementById("generated-link-panel"),
+  generatedLink: document.getElementById("generated-link"),
+  copyLinkButton: document.getElementById("copy-link-button"),
+  previewLink: document.getElementById("preview-link"),
+  dosenLink: document.getElementById("dosen-link"),
+  pesertaLink: document.getElementById("peserta-link"),
+
   startButton: document.getElementById("start-button"),
   status: document.getElementById("status"),
   cheatLimit: document.getElementById("cheat-limit"),
@@ -67,11 +78,142 @@ const elements = {
 logList: document.getElementById("log-list"),
 
 logCount: document.getElementById("log-count"),
+
+  examPanel: document.getElementById("exam-panel"),
+  examFrame: document.getElementById("exam-frame"),
+  examOriginalLink: document.getElementById("exam-original-link"),
+  linkPrompt: document.getElementById("link-prompt"),
+  openExamButton: document.getElementById("open-exam-button"),
+  cancelExamButton: document.getElementById("cancel-exam-button"),
+  chooseAppButton: document.getElementById("choose-app-button"),
 };
 
 elements.startButton.addEventListener("click", init);
 elements.lockForm.addEventListener("submit", unlockProgram);
 elements.continueButton.addEventListener("click", continueProgram);
+elements.lecturerForm.addEventListener("submit", createProtectedExamLink);
+elements.copyLinkButton.addEventListener("click", copyGeneratedLink);
+elements.openExamButton.addEventListener("click", openProtectedExam);
+elements.cancelExamButton.addEventListener("click", cancelProtectedExam);
+elements.chooseAppButton.addEventListener("click", () => {
+  alert("Aplikasi lain belum tersedia. Gunakan WGTIK untuk membuka link ujian ini.");
+});
+
+setupRouting();
+
+function setupRouting() {
+  const params = new URLSearchParams(window.location.search);
+  const isLecturerPage = params.get("page") === "dosen";
+  const protectedExamUrl = getProtectedExamUrl();
+
+  elements.lecturerPage.hidden = !isLecturerPage;
+  elements.studentApp.hidden = isLecturerPage;
+  elements.dosenLink.classList.toggle("active", isLecturerPage);
+  elements.pesertaLink.classList.toggle("active", !isLecturerPage);
+
+  if (isLecturerPage) {
+    return;
+  }
+
+  if (protectedExamUrl) {
+    elements.examPanel.hidden = false;
+    elements.examOriginalLink.href = protectedExamUrl;
+    elements.linkPrompt.classList.add("active");
+    elements.openExamButton.focus();
+  }
+}
+
+function getProtectedExamUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const encodedUrl = params.get("exam");
+
+  if (!encodedUrl) {
+    return "";
+  }
+
+  try {
+    const parsedUrl = new URL(encodedUrl);
+
+    if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
+      return "";
+    }
+
+    return parsedUrl.href;
+  } catch (error) {
+    return "";
+  }
+}
+
+function createProtectedExamLink(event) {
+  event.preventDefault();
+
+  const sourceUrl = elements.examUrlInput.value.trim();
+  let parsedUrl;
+
+  try {
+    parsedUrl = new URL(sourceUrl);
+  } catch (error) {
+    alert("Link ujian tidak valid. Gunakan URL lengkap, contoh: https://example.com/ujian");
+    elements.examUrlInput.focus();
+    return;
+  }
+
+  if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
+    alert("Link ujian harus menggunakan http:// atau https://");
+    elements.examUrlInput.focus();
+    return;
+  }
+
+  const generatedUrl = new URL(window.location.href);
+  generatedUrl.search = "";
+  generatedUrl.hash = "";
+  generatedUrl.searchParams.set("exam", parsedUrl.href);
+
+  elements.generatedLink.value = generatedUrl.href;
+  elements.previewLink.href = generatedUrl.href;
+  elements.generatedLinkPanel.hidden = false;
+  elements.generatedLink.select();
+}
+
+async function copyGeneratedLink() {
+  const link = elements.generatedLink.value;
+
+  if (!link) {
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(link);
+  } catch (error) {
+    elements.generatedLink.select();
+    document.execCommand("copy");
+  }
+
+  elements.copyLinkButton.textContent = "Tersalin";
+  window.setTimeout(() => {
+    elements.copyLinkButton.textContent = "Salin";
+  }, 1400);
+}
+
+function openProtectedExam() {
+  const protectedExamUrl = getProtectedExamUrl();
+
+  if (!protectedExamUrl) {
+    alert("Link ujian tidak valid atau sudah rusak.");
+    return;
+  }
+
+  elements.linkPrompt.classList.remove("active");
+  elements.examPanel.hidden = false;
+  elements.examFrame.src = protectedExamUrl;
+  elements.examOriginalLink.href = protectedExamUrl;
+  setStatus("Link ujian dibuka di aplikasi pengawas.");
+}
+
+function cancelProtectedExam() {
+  elements.linkPrompt.classList.remove("active");
+  setStatus("Pembukaan link ujian dibatalkan.");
+}
 
 async function init() {
 

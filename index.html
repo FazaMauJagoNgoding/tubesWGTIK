@@ -21,6 +21,10 @@
       <span class="topbar-title">Sistem Pengawas Ujian</span>
     </div>
     <div class="topbar-right">
+      <nav class="topbar-nav" aria-label="Navigasi aplikasi">
+        <a href="./index.html?page=dosen" id="dosen-link">Dosen</a>
+        <a href="./index.html" id="peserta-link">Peserta</a>
+      </nav>
       <div class="clock-badge">
         <span class="clock-dot"></span>
         <span id="live-clock">--:--:--</span>
@@ -32,7 +36,38 @@
     </div>
   </header>
 
-  <main>
+  <section class="lecturer-page" id="lecturer-page" hidden>
+    <div class="lecturer-shell">
+      <div class="lecturer-header">
+        <span class="panel-label">Halaman Dosen</span>
+        <h1>Generator Link Ujian Terproteksi</h1>
+        <p>Paste link ujian asli, lalu bagikan link baru ke peserta. Peserta akan masuk lewat aplikasi pengawas sebelum halaman ujian ditampilkan.</p>
+      </div>
+
+      <form class="lecturer-form" id="lecturer-form">
+        <label for="exam-url">Link ujian asli</label>
+        <div class="lecturer-input-row">
+          <input type="url" id="exam-url" placeholder="https://contoh.ac.id/ujian/matkul" required>
+          <button type="submit" class="btn-start">Buat Link</button>
+        </div>
+        <span class="lecturer-hint">Gunakan URL lengkap yang diawali http:// atau https://.</span>
+      </form>
+
+      <div class="generated-link-panel" id="generated-link-panel" hidden>
+        <div>
+          <span class="panel-label">Link untuk peserta</span>
+          <p>Salin link ini dan kirim ke peserta ujian.</p>
+        </div>
+        <div class="generated-link-row">
+          <input type="text" id="generated-link" readonly>
+          <button type="button" id="copy-link-button" class="btn-continue">Salin</button>
+        </div>
+        <a id="preview-link" class="preview-link" href="#">Buka preview link peserta</a>
+      </div>
+    </div>
+  </section>
+
+  <main id="student-app">
 
     <!-- Left: Camera + controls -->
     <aside class="panel panel-camera">
@@ -61,6 +96,13 @@
 
     <!-- Right: Metrics + log -->
     <section class="panel panel-monitor">
+      <div class="exam-panel" id="exam-panel" hidden>
+        <div class="exam-panel-header">
+          <span class="panel-label">Halaman Ujian</span>
+          <a id="exam-original-link" href="#" target="_blank" rel="noopener">Buka tab asli</a>
+        </div>
+        <iframe id="exam-frame" title="Konten ujian" referrerpolicy="no-referrer"></iframe>
+      </div>
 
       <!-- Metrics grid -->
       <div class="metrics-grid">
@@ -158,6 +200,22 @@
       <h2>Sistem Dijeda</h2>
       <p id="pause-reason">Klik tombol lanjutkan untuk melanjutkan mengerjakan kuis.</p>
       <button type="button" id="continue-button" class="btn-continue">Lanjutkan Ujian</button>
+    </div>
+  </div>
+
+  <!-- EXAM LINK OPEN PROMPT -->
+  <div class="link-prompt" id="link-prompt" role="dialog" aria-modal="true" aria-labelledby="link-prompt-title">
+    <div class="link-prompt-panel">
+      <h2 id="link-prompt-title">Allow this exam link to open with WGTIK?</h2>
+      <button type="button" class="link-prompt-alt" id="choose-app-button">Choose a different application.</button>
+      <label class="link-prompt-check">
+        <input type="checkbox" id="always-allow-link" checked>
+        <span>Always allow this exam link to open WGTIK protected exam links</span>
+      </label>
+      <div class="link-prompt-actions">
+        <button type="button" id="open-exam-button" class="link-prompt-primary">Open Link</button>
+        <button type="button" id="cancel-exam-button" class="link-prompt-secondary">Cancel</button>
+      </div>
     </div>
   </div>
 
