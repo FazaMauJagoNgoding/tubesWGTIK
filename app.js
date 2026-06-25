@@ -52,10 +52,13 @@ const elements = {
   previewLink: document.getElementById("preview-link"),
   dosenLink: document.getElementById("dosen-link"),
   pesertaLink: document.getElementById("peserta-link"),
+<<<<<<< HEAD
   lecturerAuthModal: document.getElementById("lecturer-auth-modal"),
   lecturerAuthForm: document.getElementById("lecturer-auth-form"),
   lecturerPasswordInput: document.getElementById("lecturer-password-input"),
   lecturerAuthError: document.getElementById("lecturer-auth-error"),
+=======
+>>>>>>> 7d1e228828e78f04211e4f09f9c2bf538f212365
 
   startButton: document.getElementById("start-button"),
   status: document.getElementById("status"),
@@ -110,13 +113,18 @@ function setupRouting() {
   const isLecturerPage = params.get("page") === "dosen";
   const protectedExamUrl = getProtectedExamUrl();
 
+<<<<<<< HEAD
   // Mula-mula, sembunyikan halaman dosen demi keamanan sampai password benar
   elements.lecturerPage.hidden = true; 
+=======
+  elements.lecturerPage.hidden = !isLecturerPage;
+>>>>>>> 7d1e228828e78f04211e4f09f9c2bf538f212365
   elements.studentApp.hidden = isLecturerPage;
   elements.dosenLink.classList.toggle("active", isLecturerPage);
   elements.pesertaLink.classList.toggle("active", !isLecturerPage);
 
   if (isLecturerPage) {
+<<<<<<< HEAD
     elements.lecturerAuthModal.classList.add("active");
     elements.lecturerPasswordInput.value = "";
     elements.lecturerAuthError.textContent = "";
@@ -136,6 +144,8 @@ function setupRouting() {
         elements.lecturerPasswordInput.focus();
       }
     };
+=======
+>>>>>>> 7d1e228828e78f04211e4f09f9c2bf538f212365
     return;
   }
 
@@ -847,6 +857,7 @@ function drawPose(pose) {
   tmPose.drawSkeleton(pose.keypoints, minPartConfidence, state.ctx);
 }
 
+<<<<<<< HEAD
 document.addEventListener("visibilitychange", () => {
   if (state.isRunning && !state.isLocked && !state.examEnded) {
     if (document.hidden) {
@@ -867,6 +878,8 @@ window.addEventListener("blur", () => {
   }
 });
 
+=======
+>>>>>>> 7d1e228828e78f04211e4f09f9c2bf538f212365
 function isPersonDetected(pose) {
   if (!pose || !Array.isArray(pose.keypoints)) return false;
 
